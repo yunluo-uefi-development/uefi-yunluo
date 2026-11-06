@@ -4,6 +4,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 /*
 !/.gitignore
+!/LICENSE
+!/AGENTS.md
 !/README.md
 !/TRACKING.md
 !/UFS-PORTING.md
