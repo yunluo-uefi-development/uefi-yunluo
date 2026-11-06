@@ -9,6 +9,15 @@
 #include "UfsPassThru.h"
 
 //
+// yunluo: publish exactly one LUN.  LU2 carries the OS payload (cust/WinPE);
+// LU0 and LU1 are the small firmware LUs and the RPMB well-known LU is a
+// security function, so none of those should appear as a block device.
+//
+#ifndef YUNLUO_EXPOSED_LU
+#define YUNLUO_EXPOSED_LU  2
+#endif
+
+//
 // Template for Ufs Pass Thru private data.
 //
 UFS_PASS_THRU_PRIVATE_DATA  gUfsPassThruTemplate = {
@@ -989,15 +998,39 @@ UfsPassThruDriverBindingStart (
   //
   // Check if 8 common luns are active and set corresponding bit mask.
   //
-  UnitDescriptorSize = sizeof (UFS_UNIT_DESC);
   for (Index = 0; Index < 8; Index++) {
+    // UfsRwDeviceDesc updates this IN OUT size (and sets it to zero on error).
+    // Restore it for every LU; otherwise one short/failed query hides later LUs.
+    UnitDescriptorSize = sizeof (UFS_UNIT_DESC);
+    ZeroMem (&UnitDescriptor, sizeof (UnitDescriptor));
     Status = UfsRwDeviceDesc (Private, TRUE, UfsUnitDesc, (UINT8)Index, 0, &UnitDescriptor, &UnitDescriptorSize);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_ERROR, "Failed to read unit descriptor, index = %X, status = %r\n", Index, Status));
       continue;
     }
 
-    if (UnitDescriptor.LunEn == 0x1) {
+    DEBUG ((DEBUG_ERROR, "YUNLUO-LU: index=%u size=%u type=%u unit=%u enable=0x%02x\n",
+            Index, UnitDescriptorSize, UnitDescriptor.DescType,
+            UnitDescriptor.UnitIdx, UnitDescriptor.LunEn));
+    if ((UnitDescriptorSize < 4) || (UnitDescriptor.Length < 4) ||
+        (UnitDescriptor.DescType != UfsUnitDesc) || (UnitDescriptor.UnitIdx != Index)) {
+      DEBUG ((DEBUG_ERROR, "YUNLUO-LU: invalid descriptor for LU %u; not exposing it\n", Index));
+      continue;
+    }
+
+    if (Index != YUNLUO_EXPOSED_LU) {
+      DEBUG ((
+        DEBUG_ERROR,
+        "YUNLUO-LU: LU %u hidden (only LU %u is exposed)\n",
+        Index,
+        YUNLUO_EXPOSED_LU
+        ));
+      continue;
+    }
+
+    // Match the existing yunluo NativeMtkUfs nonzero-enabled convention.
+    // This only exposes an existing LU; it never changes its configuration.
+    if (UnitDescriptor.LunEn != 0) {
       DEBUG ((DEBUG_INFO, "UFS LUN %X is enabled\n", Index));
       Private->Luns.BitMask |= (BIT0 << Index);
     }
@@ -1012,8 +1045,8 @@ UfsPassThruDriverBindingStart (
     DEBUG ((DEBUG_ERROR, "Failed to read device descriptor, status = %r\n", Status));
   } else {
     if (DeviceDescriptor.SecurityLun == 0x1) {
-      DEBUG ((DEBUG_INFO, "UFS WLUN RPMB is supported\n"));
-      Private->Luns.BitMask |= BIT11;
+      // yunluo: RPMB is a security function, not a block device -- keep it hidden.
+      DEBUG ((DEBUG_ERROR, "YUNLUO-LU: RPMB WLUN present but hidden\n"));
     }
   }
 

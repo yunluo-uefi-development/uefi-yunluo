@@ -1,0 +1,20 @@
+## SPDX-License-Identifier: BSD-2-Clause-Patent
+[Defines]
+  INF_VERSION = 0x00010005
+  BASE_NAME = YunluoTouchAcpiDxe
+  FILE_GUID = 683B9057-2818-4298-B8B3-3CB2744A0E7F
+  MODULE_TYPE = DXE_DRIVER
+  VERSION_STRING = 1.0
+  ENTRY_POINT = YunluoTouchAcpiEntryPoint
+[Sources]
+  YunluoTouchAcpiDxe.c
+[Packages]
+  MdePkg/MdePkg.dec
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  DebugLib
+[Protocols]
+  gEfiAcpiTableProtocolGuid ## CONSUMES
+[Depex]
+  gEfiAcpiTableProtocolGuid

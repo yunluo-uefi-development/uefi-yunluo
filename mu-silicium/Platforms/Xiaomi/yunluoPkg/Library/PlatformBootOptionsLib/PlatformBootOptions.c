@@ -1,10 +1,14 @@
 /** @file
   Board boot options for yunluo.
 
-  Registers the UEFI Shell as an active boot option.  Without an OS payload
-  (this firmware has none), BDS would otherwise fall through to
-  PlatformBootManagerUnableToBoot(), which shuts the device down after 10 s.
-  With the Shell registered, the firmware stops at a usable prompt.
+  Registers two active boot options:
+
+    "UEFI Shell"    - the ShellApp, so a firmware with no OS payload stops at a
+                      usable prompt instead of PlatformBootManagerUnableToBoot().
+    "UEFI Settings" - UiApp, which is the graphical setup front end (Device
+                      Manager / Boot Manager / Boot Maintenance Manager).  UiApp
+                      renders on ConOut, so with GraphicsConsoleDxe bound to our
+                      GOP it comes up as a graphical UI on the panel.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -16,6 +20,14 @@
 #include <Library/PlatformBootOptionsLib.h>
 
 #include <Guid/GlobalVariable.h>
+
+//
+// UiApp.inf FILE_GUID.  MdeModulePkg.dec only publishes the BootManagerMenuApp
+// GUID (PcdBootManagerMenuFile), so the UiApp file GUID is spelled out here.
+//
+STATIC EFI_GUID  mUiAppFileGuid = {
+  0x462CAA21, 0x7614, 0x4503, { 0x83, 0x6E, 0x8A, 0xB6, 0xF4, 0x66, 0x23, 0x31 }
+};
 
 VOID
 GetPlatformBootOptions (
@@ -32,7 +44,7 @@ GetPlatformBootOptions (
   *BootOption      = NULL;
   *BootOptionCount = 0;
 
-  Options = AllocateZeroPool (sizeof (EFI_PLATFORM_BOOT_OPTION));
+  Options = AllocateZeroPool (sizeof (EFI_PLATFORM_BOOT_OPTION) * 2);
   if (Options == NULL) {
     DEBUG ((DEBUG_ERROR, "%a: out of memory\n", __FUNCTION__));
     return;
@@ -42,8 +54,12 @@ GetPlatformBootOptions (
   Options[0].AppGuid       = &gUefiShellFileGuid;
   Options[0].LoadAttribute = LOAD_OPTION_ACTIVE;
 
+  Options[1].AppName       = L"UEFI Settings";
+  Options[1].AppGuid       = &mUiAppFileGuid;
+  Options[1].LoadAttribute = LOAD_OPTION_ACTIVE;
+
   *BootOption      = Options;
-  *BootOptionCount = 1;
+  *BootOptionCount = 2;
 
   DEBUG ((DEBUG_ERROR, "%a: registering %u platform boot option(s)\n", __FUNCTION__, *BootOptionCount));
 }

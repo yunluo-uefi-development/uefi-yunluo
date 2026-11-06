@@ -6,7 +6,12 @@
 #   LK -> boot.img kernel = gzip(BootShim + SILICIUM_UEFI.fd)
 #      -> BootShim copies the 7 MiB FV to 0x50000000 and jumps
 #
-#   ./build-yunluo-mu.sh [DEBUG|RELEASE]
+#   ./build-yunluo-mu.sh [DEBUG|RELEASE] [8g|6g]
+#
+#   8g (default) -> MemoryMapLib   : full 8 GiB, for 8 GiB units
+#   6g           -> MemoryMap6GLib : 6 GiB ceiling, for 6 GiB units
+#   刷错会怎样：6 GiB 机器刷 8 GiB 版 = 描述不存在的内存 -> Windows Phase0 崩；
+#   8 GiB 机器刷 6 GiB 版 = 安全，但只用得到 6 GiB。
 #
 set -uo pipefail
 
@@ -19,6 +24,11 @@ CONF="$WORK/edk2-conf"
 LOGS="$WORK/logs"
 OUT="$ROOT/Build/yunluo-mu"
 TARGET="${1:-DEBUG}"
+MEMMAP="${2:-8g}"
+case "$MEMMAP" in
+  6g|6G) MM6G=TRUE;  SUFFIX="-6g" ;;
+  *)     MM6G=FALSE; SUFFIX=""    ;;
+esac
 
 FD_BASE="${FD_BASE:-0x50000000}"
 FD_SIZE="${FD_SIZE:-0x00700000}"
@@ -46,11 +56,12 @@ done
 
 LOG="$LOGS/uefi-yunluo-mu-$(date +%Y%m%d-%H%M%S).log"
 cd "$M" || exit 1
-echo "== build yunluoPkg ($TARGET), log: $LOG"
+IMG="$OUT/boot-yunluo-mu${SUFFIX}.img"
+echo "== build yunluoPkg ($TARGET, memmap $MEMMAP), log: $LOG"
 build -p yunluoPkg/yunluo.dsc -a AARCH64 -b "$TARGET" -t CLANGPDB -n "$(nproc)" \
   -D FD_BASE="$FD_BASE" -D FD_SIZE="$FD_SIZE" -D FD_BLOCKS="$FD_BLOCKS" \
   -D DEVICE_MODEL=0 -D ENABLE_SECUREBOOT=0 -D MEMORY_PROTECTION=TRUE \
-  -D SHIP_MODE=FALSE -D BUILDID_STRING=yunluo-mu \
+  -D SHIP_MODE=FALSE -D BUILDID_STRING=yunluo-mu -D MEMORY_MAP_6G="$MM6G" \
   > "$LOG" 2>&1
 rc=$?
 echo "build rc=$rc"
@@ -71,10 +82,10 @@ make -C "$OURS/BootShim" UEFI_BASE=0x50000000 UEFI_SIZE=0x700000 >/dev/null || e
 
 cat "$OURS/BootShim/BootShim.bin" "$FD" > "$FD.shimmed"
 gzip -9 -c "$FD.shimmed" > "$FD.shimmed.gz"
-python3 "$OURS/Tools/mkbootimg.py" boot "$FD.shimmed.gz" "$OUT/boot-yunluo-mu.img" || exit 1
+python3 "$OURS/Tools/mkbootimg.py" boot "$FD.shimmed.gz" "$IMG" || exit 1
 
 cp -f "$OURS/vendor_boot.img" "$OUT/vendor_boot-yunluo-mu.img"
-python3 "$OURS/Tools/mkbootimg.py" inspect "$OUT/boot-yunluo-mu.img" "$OUT/vendor_boot-yunluo-mu.img"
+python3 "$OURS/Tools/mkbootimg.py" inspect "$IMG" "$OUT/vendor_boot-yunluo-mu.img"
 
 echo ""
 echo "=========== SUCCESS! ==========="
@@ -82,4 +93,4 @@ echo "FD:         $FD"
 echo "boot.img:   $OUT/boot-yunluo-mu.img"
 echo "vendor:     $OUT/vendor_boot-yunluo-mu.img"
 echo "================================"
-sha256sum "$OUT/boot-yunluo-mu.img" "$OUT/vendor_boot-yunluo-mu.img"
+sha256sum "$IMG" "$OUT/vendor_boot-yunluo-mu.img"

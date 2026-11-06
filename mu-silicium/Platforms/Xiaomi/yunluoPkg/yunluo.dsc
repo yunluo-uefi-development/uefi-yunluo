@@ -35,6 +35,12 @@
   gArmPlatformTokenSpaceGuid.PcdCPUCorePrimaryStackSize|0x00040000
 
   #
+  # Boot menu timeout.  The keypad is release-to-arm, so give the user a little
+  # more time to open the menu (SiliciumPkg.dsc.inc defaults this to 3).
+  #
+  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|5
+
+  #
   # SMBIOS
   #
   gSiliciumPkgTokenSpaceGuid.PcdSmbiosSystemManufacturer|"Xiaomi"
@@ -60,6 +66,11 @@
   gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferHeight|2000
   gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferLayers|3
   gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferPixelFormat|1
+  #
+  # The OEM mounted this panel upside-down, so the OVL scanout has to be
+  # rotated 180 degrees (CON BIT9|BIT10 + scanout from the last visible byte).
+  #
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferRotation|180
 
   #
   # The Shell app initialises its own shell protocol; library constructors
@@ -71,7 +82,20 @@
   #
   # Board libraries
   #
+  #
+  # Memory map, selected per SKU (they are NOT interchangeable the other way):
+  #   ./build-yunluo-mu.sh DEBUG       -> 8 GiB map  (default; 8 GiB units)
+  #   ./build-yunluo-mu.sh DEBUG 6g    -> 6 GiB map  (6 GiB units; top 32 MiB
+  #                                       withheld as a guard)
+  # Describing RAM that does not exist makes Windows die in Phase 0, so a
+  # 6 GiB unit must never run the 8 GiB image.  The reverse is safe but wastes
+  # 2 GiB.  The build script always passes MEMORY_MAP_6G, so no DEFINE here.
+  #
+!if $(MEMORY_MAP_6G) == TRUE
+  MemoryMapLib|yunluoPkg/Library/MemoryMap6GLib/MemoryMapLib.inf
+!else
   MemoryMapLib|yunluoPkg/Library/MemoryMapLib/MemoryMapLib.inf
+!endif
   KeypadDeviceLib|yunluoPkg/Library/KeypadDeviceLib/KeypadDeviceLib.inf
   PlatformBootOptionsLib|yunluoPkg/Library/PlatformBootOptionsLib/PlatformBootOptionsLib.inf
 
@@ -79,6 +103,12 @@
   # SCSI disk layer on top of UfsPassThruDxe
   #
   UefiScsiLib|MdePkg/Library/UefiScsiLib/UefiScsiLib.inf
+
+  #
+  # Setup UI: DisplayEngineDxe draws the forms with this helper; nothing else
+  # in this platform pulls it in (SiliciumPkg.dsc.inc does not map it).
+  #
+  CustomizedDisplayLib|MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.inf
 
   #
   # Shell libraries (nothing in the upstream platform needed them)
@@ -112,6 +142,19 @@
   yunluoPkg/Drivers/HandoffAuditDxe/HandoffAuditDxe.inf
 
   #
+  # Touch (merged from yunluo-uefi-development/uefi-yunluo):
+  #   YunluoTouchAcpiDxe     - installs the SSDT describing the OS-owned
+  #                            NT36523 node (_HID "YUNT0001").
+  #   YunluoTouchPlatformDxe - publishes the platform resource facts
+  #                            (GPIO 0x10005000, SPI0 0x1100A000, GPIO30-33,
+  #                            touch GPIO8, SPI mode 0) on a private protocol.
+  # Neither driver touches hardware (no MMIO/GPIO/reset/firmware upload), so
+  # they are inert until a Windows-side consumer exists.
+  #
+  yunluoPkg/Drivers/YunluoTouchAcpiDxe/YunluoTouchAcpiDxe.inf
+  yunluoPkg/Drivers/YunluoTouchPlatformDxe/YunluoTouchPlatformDxe.inf
+
+  #
   # Input: PMIC power/home (volume up) and GPIO 66 (volume down)
   #
   SiliciumPkg/Drivers/KeypadDxe/KeypadDxe.inf
@@ -129,6 +172,22 @@
   MdeModulePkg/Bus/Ufs/UfsPassThruDxe/UfsPassThruDxe.inf
   MdeModulePkg/Bus/Scsi/ScsiBusDxe/ScsiBusDxe.inf
   MdeModulePkg/Bus/Scsi/ScsiDiskDxe/ScsiDiskDxe.inf
+
+  #
+  # UEFI setup front end.  UiApp is the graphical settings UI (Device Manager /
+  # Boot Manager / Boot Maintenance Manager) and is registered as the
+  # "UEFI Settings" boot option by PlatformBootOptionsLib.
+  #
+  # UiApp needs three pieces that nothing else in this platform pulls in:
+  #   UiApp              - the menu front end itself
+  #   DisplayEngineDxe   - produces EDKII_FORM_DISPLAY_ENGINE_PROTOCOL, which is
+  #                        what actually draws the forms ("Fatal Error!
+  #                        EDKII_FORM_DISPLAY_ENGINE_PROTOCOL not found!" when absent)
+  #   (SetupBrowserDxe / BootManagerMenuApp come from SiliciumPkg.dsc.inc +
+  #    SiliciumPkg/Extra.fdf.inc)
+  #
+  MdeModulePkg/Application/UiApp/UiApp.inf
+  MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
 
   #
   # UEFI Shell, registered as a boot option by PlatformBootOptionsLib so a

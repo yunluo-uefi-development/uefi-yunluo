@@ -20,3 +20,4 @@
   gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferHeight|2000|UINT32|0x00001004
   gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferLayers|3|UINT32|0x00001005
   gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferPixelFormat|1|UINT32|0x00001006  ## 0=RGBR, 1=BGRR (Windows requirement)
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferRotation|0|UINT32|0x00001007

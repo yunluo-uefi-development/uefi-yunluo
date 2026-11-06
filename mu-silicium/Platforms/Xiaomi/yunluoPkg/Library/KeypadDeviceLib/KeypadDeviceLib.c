@@ -21,6 +21,7 @@ typedef struct {
   KEY_CONTEXT EfiKeyContext;
   KEY_TYPE    Type;
   UINT32      Pin;
+  BOOLEAN     Armed;
 } KEY_CONTEXT_PRIVATE;
 
 UINTN gBitmapScanCodes[BITMAP_NUM_WORDS(0x18)]    = {0};
@@ -50,9 +51,9 @@ KeySetState (
 
   if (UnicodeChar && UnicodeChar < 0x7f) {
     if (Value) {
-      BitmapSet(gBitmapUnicodeChars, ScanCode);
+      BitmapSet(gBitmapUnicodeChars, UnicodeChar);
     } else {
-      BitmapClear(gBitmapUnicodeChars, ScanCode);
+      BitmapClear(gBitmapUnicodeChars, UnicodeChar);
     }
   }
 }
@@ -71,7 +72,7 @@ KeyGetState (
   }
 
   if (UnicodeChar && UnicodeChar < 0x7f) {
-    if (!BitmapTest(gBitmapUnicodeChars, ScanCode)) {
+    if (!BitmapTest(gBitmapUnicodeChars, UnicodeChar)) {
       return FALSE;
     }
   }
@@ -190,6 +191,7 @@ KeypadInitializeKeyContextPrivate (KEY_CONTEXT_PRIVATE *Context)
 {
   Context->Type = KEY_TYPE_UNKNOWN;
   Context->Pin = 0;
+  Context->Armed = FALSE;
 }
 
 STATIC
@@ -301,6 +303,13 @@ KeypadDeviceGetKeys (
 
       IsPressed = !IsPressed;
     } else {
+      continue;
+    }
+
+    if (!Context->Armed) {
+      if (!IsPressed) {
+        Context->Armed = TRUE;
+      }
       continue;
     }
 

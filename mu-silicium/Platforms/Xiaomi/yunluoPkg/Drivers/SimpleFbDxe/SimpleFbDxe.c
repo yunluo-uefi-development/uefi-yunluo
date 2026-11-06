@@ -35,6 +35,8 @@
 
 #include <Protocol/GraphicsOutput.h>
 
+#include "OvlScanout.h"
+
 #define YUNLUO_OVL0_BASE       0x14005000U
 #define YUNLUO_OVL0_2L_BASE    0x14006000U
 #define YUNLUO_OVL_LAYER_COUNT 4U
@@ -128,7 +130,8 @@ YunluoAdoptOverlay (
   IN UINT32                FrameBufferSize,
   IN UINT32                FrameBufferStride,
   IN UINT32                VisibleWidth,
-  IN UINT32                Height
+  IN UINT32                Height,
+  IN CONST OVL_SCANOUT_LAYOUT *Layout
   )
 {
   UINT32  Enabled;
@@ -226,6 +229,7 @@ YunluoAdoptOverlay (
      * no byte swap.
      */
     Con = (Con & ~YUNLUO_OVL_FORMAT_MASK) | YUNLUO_OVL_RGBA8888;
+    Con = (Con & ~(BIT9 | BIT10)) | Layout->Flip;
     // Full-screen layer alpha; AEN and other CON bits stay as LK left them.
     Con = (Con & ~0xFFU) | 0xFFU;
     // OVL_CON_AEN: disable per-pixel alpha blending.  Windows bootmgr leaves
@@ -234,7 +238,7 @@ YunluoAdoptOverlay (
     Con &= ~BIT8;
     MmioWrite32 (OverlayBase + YUNLUO_OVL_CON (Layer), Con);
     MmioWrite32 (OverlayBase + YUNLUO_OVL_PITCH (Layer), FrameBufferStride);
-    MmioWrite32 (OverlayBase + YUNLUO_OVL_ADDR (Layer), (UINT32)FrameBufferAddress);
+    MmioWrite32 (OverlayBase + YUNLUO_OVL_ADDR (Layer), Layout->Address);
 
     if (Layer == PrimaryLayer) {
       MmioWrite32 (OverlayBase + YUNLUO_OVL_PITCH_MSB (Layer), 0);
@@ -361,7 +365,9 @@ YunluoSimpleFbInitialize (
   UINT32               Height;
   UINT32               Layers;
   UINT32               PixelFormat;
+  UINT32               Rotation;
   UINT32               FrameBufferSize;
+  OVL_SCANOUT_LAYOUT   ScanoutLayout;
   UINT32               Layer;
   UINT32               Adopted0;
   UINT32               Adopted2L;
@@ -382,17 +388,27 @@ YunluoSimpleFbInitialize (
     VisibleWidth = Stride;
   }
 
+  Rotation = FixedPcdGet32 (PcdYunluoFrameBufferRotation);
+  if (!ComputeOvlScanout (FrameBufferAddress, VisibleWidth, Height,
+                         Stride * FB_BYTES_PER_PIXEL, Rotation, &ScanoutLayout))
+  {
+    DEBUG ((DEBUG_ERROR, "YUNLUOFB: invalid scanout rotation/pitch\n"));
+    return EFI_UNSUPPORTED;
+  }
+
   FrameBufferSize = Stride * Height * FB_BYTES_PER_PIXEL;
 
   DEBUG ((
     DEBUG_ERROR,
-    "YUNLUOFB: base 0x%lx stride %u visible %u height %u layers %u format %u\n",
+    "YUNLUOFB: base 0x%lx stride %u visible %u height %u layers %u format %u rotation %u scanout 0x%08x\n",
     FrameBufferAddress,
     Stride,
     VisibleWidth,
     Height,
     Layers,
-    PixelFormat
+    PixelFormat,
+    Rotation,
+    ScanoutLayout.Address
     ));
 
   Status = gBS->AllocatePool (
@@ -468,8 +484,8 @@ YunluoSimpleFbInitialize (
   // LK leaves the OVL layers enabled but aimed at its own splash buffer.
   // Adopt the layers that already sit in the framebuffer carveout.
   //
-  Adopted0   = YunluoAdoptOverlay (YUNLUO_OVL0_BASE, FrameBufferAddress, FrameBufferSize, Stride * FB_BYTES_PER_PIXEL, VisibleWidth, Height);
-  Adopted2L  = YunluoAdoptOverlay (YUNLUO_OVL0_2L_BASE, FrameBufferAddress, FrameBufferSize, Stride * FB_BYTES_PER_PIXEL, VisibleWidth, Height);
+  Adopted0   = YunluoAdoptOverlay (YUNLUO_OVL0_BASE, FrameBufferAddress, FrameBufferSize, Stride * FB_BYTES_PER_PIXEL, VisibleWidth, Height, &ScanoutLayout);
+  Adopted2L  = YunluoAdoptOverlay (YUNLUO_OVL0_2L_BASE, FrameBufferAddress, FrameBufferSize, Stride * FB_BYTES_PER_PIXEL, VisibleWidth, Height, &ScanoutLayout);
 
   DEBUG ((
     DEBUG_ERROR,

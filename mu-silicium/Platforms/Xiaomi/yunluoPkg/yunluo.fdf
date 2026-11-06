@@ -59,6 +59,16 @@ READ_LOCK_STATUS   = TRUE
   INF yunluoPkg/Drivers/HandoffQuiesceDxe/HandoffQuiesceDxe.inf
   INF yunluoPkg/Drivers/HandoffAuditDxe/HandoffAuditDxe.inf
 
+  # Touch: SSDT for the OS-owned NT36523 node + platform resource facts.
+  INF yunluoPkg/Drivers/YunluoTouchAcpiDxe/YunluoTouchAcpiDxe.inf
+  INF yunluoPkg/Drivers/YunluoTouchPlatformDxe/YunluoTouchPlatformDxe.inf
+
+  # UEFI settings UI.  SetupBrowserDxe / BootManagerMenuApp come from
+  # SiliciumPkg/Extra.fdf.inc.  UiApp is the front end and DisplayEngineDxe
+  # provides the form display engine it looks up at runtime.
+  INF MdeModulePkg/Application/UiApp/UiApp.inf
+  INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
+
   # Device Tree is intentionally not used by this platform.
   !include MediaTekPkg/Extra.fdf.inc
 

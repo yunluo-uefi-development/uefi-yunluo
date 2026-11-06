@@ -1,0 +1,30 @@
+## @file
+#  Publishes yunluo NT36523 platform resource facts to a future Windows-facing
+#  consumer. No MMIO, GPIO, reset or firmware operation is performed.
+##
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = YunluoTouchPlatformDxe
+  FILE_GUID                      = E4F9B6F0-348D-437A-9893-C0D754EC821D
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = YunluoTouchPlatformEntryPoint
+
+[Sources]
+  YunluoTouchPlatformDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  yunluoPkg/Drivers/YunluoTouchPlatformDxe/YunluoTouchPlatformDxe.dec
+
+[LibraryClasses]
+  BaseMemoryLib
+  DebugLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[Protocols]
+  gYunluoTouchPlatformProtocolGuid ## PRODUCES
+
+[Depex]
+  TRUE

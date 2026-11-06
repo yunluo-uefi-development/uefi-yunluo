@@ -1,0 +1,12 @@
+## @file
+# Windows-only boot-services platform contract; no shared package changes.
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+[Defines]
+  DEC_SPECIFICATION = 0x00010005
+  PACKAGE_NAME      = YunluoTouchPlatformPkg
+  PACKAGE_GUID      = 2681037D-299C-49A9-A67C-56368AC93D7E
+  PACKAGE_VERSION   = 0.1
+
+[Protocols]
+  gYunluoTouchPlatformProtocolGuid = { 0x6f6d7fb2, 0x2c04, 0x4f2a, { 0x9a, 0x51, 0x4e, 0x8b, 0x13, 0x5a, 0x60, 0x19 } }
