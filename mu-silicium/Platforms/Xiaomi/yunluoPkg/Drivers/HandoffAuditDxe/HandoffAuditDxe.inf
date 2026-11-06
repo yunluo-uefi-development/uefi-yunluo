@@ -1,0 +1,48 @@
+## @file
+#  Prove on hardware that the GIC, the architected timer and the MTK clock tree
+#  actually work, instead of inferring it from code.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = HandoffAuditDxe
+  FILE_GUID                      = 4B7C2E91-6D84-4A15-B3E7-9F0C41D8A256
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = HandoffAuditEntryPoint
+
+[Sources]
+  HandoffAuditDxe.c
+
+[Packages]
+  ArmPkg/ArmPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  SiliciumPkg/SiliciumPkg.dec
+  MediaTekPkg/MediaTekPkg.dec
+
+[LibraryClasses]
+  ArmGenericTimerCounterLib
+  ArmLib
+  BaseMemoryLib
+  DebugLib
+  IoLib
+  MemoryAllocationLib
+  MemoryMapHelperLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Guids]
+  gEfiAcpi20TableGuid
+  gEfiAcpi10TableGuid
+
+[Protocols]
+  gEfiTimerArchProtocolGuid          ## CONSUMES
+  gHardwareInterruptProtocolGuid     ## CONSUMES
+  gMediaTekClockProtocolGuid         ## CONSUMES
+
+[Depex]
+  gEfiTimerArchProtocolGuid AND gHardwareInterruptProtocolGuid AND gMediaTekClockProtocolGuid

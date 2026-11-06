@@ -1,0 +1,47 @@
+## @file
+#  yunluo SimpleFbDxe: GOP on the LK-handoff framebuffer with MTK OVL adoption.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = YunluoSimpleFbDxe
+  FILE_GUID                      = 8F2D6A31-4C7B-4E19-B0A2-5D3C8E7F1A64
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = YunluoSimpleFbInitialize
+
+[Sources]
+  SimpleFbDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  yunluoPkg/yunluoPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  FrameBufferBltLib
+  IoLib
+  MemoryAllocationLib
+  PcdLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[FixedPcd]
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferAddress
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferStride
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferVisibleWidth
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferHeight
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferLayers
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferPixelFormat
+
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid
+  gEfiDevicePathProtocolGuid
+
+[Depex]
+  TRUE

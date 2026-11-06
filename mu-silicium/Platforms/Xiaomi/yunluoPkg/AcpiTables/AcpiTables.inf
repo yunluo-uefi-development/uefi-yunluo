@@ -1,0 +1,36 @@
+##
+#  ACPI table set for yunluo (MT6789), matching the table set the lancelot
+#  platform (MT6833, the only MediaTek device in Status.md with Windows Boot
+#  verified) ships.
+#
+ #  FACP/GTDT/DSDT/SSDT come from Silicium-ACPI's MT6768 templates; MT6789
+#  uses the same arch-timer and PMU PPIs and the same uart0 at 0x11002000, so
+#  no value needs changing.  APIC is generated for MT6789 (8 CPUs, MPIDR
+#  0x000..0x700, GICD 0x0C000000, GICR 0x0C040000).
+#
+#  The MADT/GTDT interrupt fields are legacy GICv2 PPI indices (16 + n), not
+#  GSIVs (32 + n).  Every Qualcomm Windows-on-ARM table in this repo uses that
+#  convention; rewriting them to spec-correct GSIVs makes Windows arm the wrong
+#  vectors and turns the boot into a silent hang.
+#
+#  FILE_GUID must stay the default value of
+#  gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiTableStorageFile so that
+#  AcpiPlatformDxe finds this FFS file.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION    = 0x00010005
+  BASE_NAME      = AcpiTables
+  FILE_GUID      = 7E374E25-8E01-4FEE-87F2-390C23C606CD
+  MODULE_TYPE    = USER_DEFINED
+  VERSION_STRING = 1.0
+
+[Binaries]
+  ASL|FACP.aml
+  ASL|APIC.aml
+  ASL|GTDT.aml
+  ASL|DSDT.aml
+  ASL|SSDT.aml
+  ASL|DBG2.aml

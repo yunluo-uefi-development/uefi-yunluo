@@ -1,0 +1,36 @@
+## @file
+#  UFS dependency self test (clocks/resets/VEMC/refclk/SMC) for yunluo.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = UfsDepsDxe
+  FILE_GUID                      = 3C2A7E51-9B84-4D6F-A3E1-7F5C0B2D9A46
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = UfsDepsDxeEntry
+
+[Sources]
+  UfsDepsDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MediaTekPkg/MediaTekPkg.dec
+
+[LibraryClasses]
+  ArmSmcLib
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  IoLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[Protocols]
+  gMediaTekClockProtocolGuid
+  gMediaTekPmicProtocolGuid
+
+[Depex]
+  gMediaTekClockProtocolGuid AND gMediaTekPmicProtocolGuid

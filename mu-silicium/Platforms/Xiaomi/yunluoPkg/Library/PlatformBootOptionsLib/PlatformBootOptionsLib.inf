@@ -1,0 +1,24 @@
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = PlatformBootOptionsLib
+  FILE_GUID                      = 4C1E7A90-6B25-4E31-9F8D-2A71C0B5E634
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = PlatformBootOptionsLib|DXE_DRIVER
+
+[Sources]
+  PlatformBootOptions.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ShellPkg/ShellPkg.dec
+  SiliciumPkg/SiliciumPkg.dec
+
+[LibraryClasses]
+  BaseMemoryLib
+  DebugLib
+  MemoryAllocationLib
+
+[Guids]
+  gUefiShellFileGuid                            ## SOMETIMES_CONSUMES

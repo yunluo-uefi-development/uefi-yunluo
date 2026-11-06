@@ -1,0 +1,40 @@
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = MtkUfsDxe
+  FILE_GUID                      = 0D6C1C27-6A10-4C84-9E6F-7A5B4D2E8F91
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = MtkUfsEntryPoint
+
+[Sources]
+  MtkUfsDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPkg/ArmPkg.dec
+  MediaTekPkg/MediaTekPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  ArmSmcLib
+  DebugLib
+  CacheMaintenanceLib
+  DevicePathLib
+  DxeServicesTableLib
+  IoLib
+  TimerLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Protocols]
+  gEdkiiUfsHostControllerProtocolGuid ## PRODUCES
+  gEdkiiUfsHcPlatformProtocolGuid     ## PRODUCES
+  gEfiDevicePathProtocolGuid          ## PRODUCES
+  gMediaTekPmicProtocolGuid           ## CONSUMES
+
+[Depex]
+  TRUE

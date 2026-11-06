@@ -1,0 +1,33 @@
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = PlatformStatusDxe
+  FILE_GUID                      = 8F1C2A44-6B7D-4E21-9C55-2D3A7B6E1F90
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = PlatformStatusEntryPoint
+
+[Sources]
+  PlatformStatusDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  PrintLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Guids]
+  gEfiAcpi20TableGuid
+
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid
+  gEfiShellProtocolGuid
+
+[Depex]
+  TRUE

@@ -1,0 +1,28 @@
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = HandoffQuiesceDxe
+  FILE_GUID                      = B7E4D1C2-0F3A-4A6B-9D1E-5C2F8A7B3D40
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = HandoffQuiesceEntryPoint
+
+[Sources]
+  HandoffQuiesceDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  SiliciumPkg/SiliciumPkg.dec
+
+[LibraryClasses]
+  ArmLib
+  DebugLib
+  IoLib
+  MemoryMapHelperLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[Guids]
+  gEfiEventBeforeExitBootServicesGuid
+
+[Depex]
+  gEfiCpuArchProtocolGuid

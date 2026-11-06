@@ -1,0 +1,22 @@
+[Defines]
+  DEC_SPECIFICATION = 0x00010005
+  PACKAGE_NAME      = yunluoPkg
+  PACKAGE_GUID      = 2E9A7C10-5B4D-4E88-9F31-0A6C7D2B8E45
+  PACKAGE_VERSION   = 0.1
+
+[Guids]
+  gYunluoPkgTokenSpaceGuid = { 0xB6F3D2A1, 0x4C58, 0x47E9, { 0xA0, 0x3D, 0x91, 0x6C, 0x2E, 0x58, 0x7B, 0x14 } }
+
+[PcdsFixedAtBuild]
+  #
+  # Simple framebuffer handed over by LK.  The live LK OVL dump on this
+  # panel is: ROI/SRC_SIZE 0x07D004B0 (width 1200, height 2000),
+  # pitch 4800 bytes, fb 0xFE2C3000.  It is portrait 1200x2000, not the
+  # landscape geometry in the old edk2-yunluo notes.
+  #
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferAddress|0x00000000FE2C3000|UINT64|0x00001001
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferStride|1200|UINT32|0x00001002
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferVisibleWidth|1200|UINT32|0x00001003
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferHeight|2000|UINT32|0x00001004
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferLayers|3|UINT32|0x00001005
+  gYunluoPkgTokenSpaceGuid.PcdYunluoFrameBufferPixelFormat|1|UINT32|0x00001006  ## 0=RGBR, 1=BGRR (Windows requirement)
