@@ -38,7 +38,19 @@ mkdir -p "$CONF" "$LOGS" "$OUT"
 
 [ -d "$M/Platforms/Xiaomi/yunluoPkg" ] || { echo "no yunluoPkg in $M" >&2; exit 1; }
 
-PACKAGES="$M:$M/Platforms/Xiaomi:$M/Common/Mu:$M/Common/Mu_OEM_Sample:$EDK2:$M/Silicon/MediaTek:$M/Silicon/Silicium:$M/Silicium-ACPI:$M/Silicium-ACPI/Platforms/Xiaomi:$M/Silicium-ACPI/Silicon/MediaTek"
+# PACKAGES_PATH: only directories that exist, so a deliberately trimmed tree
+# (e.g. without Silicium-ACPI) still configures instead of aborting with
+# "error 000E: One Path in PACKAGES_PATH doesn't exist".
+PACKAGES=""
+for p in "$M" "$M/Platforms/Xiaomi" "$M/Common/Mu" "$M/Common/Mu_OEM_Sample" "$EDK2" \
+         "$M/Silicon/MediaTek" "$M/Silicon/Silicium" \
+         "$M/Silicium-ACPI" "$M/Silicium-ACPI/Platforms/Xiaomi" "$M/Silicium-ACPI/Silicon/MediaTek"; do
+  if [ -d "$p" ]; then
+    PACKAGES="${PACKAGES:+$PACKAGES:}$p"
+  else
+    echo "note: package path absent, skipping: $p"
+  fi
+done
 
 export WORKSPACE="$M"
 export EDK_TOOLS_PATH="$EDK2/BaseTools"
@@ -53,6 +65,14 @@ export GCC_AARCH64_PREFIX="aarch64-linux-gnu-"
 for f in target tools_def build_rule; do
   [ -f "$CONF/$f.txt" ] || cp "$EDK_TOOLS_PATH/Conf/$f.template" "$CONF/$f.txt"
 done
+
+# BaseTools prebuilt binaries ship with this repository, but build them if a
+# checkout ever lacks them (upstream Mu treats Source/C/bin as generated).
+if [ ! -x "$EDK_TOOLS_PATH/Source/C/bin/GenFfs" ]; then
+  echo "== BaseTools binaries missing, building them (one-off)"
+  make -C "$EDK_TOOLS_PATH" -j"$(nproc)" >/dev/null 2>&1 || {
+    echo "BaseTools build failed" >&2; exit 1; }
+fi
 
 LOG="$LOGS/uefi-yunluo-mu-$(date +%Y%m%d-%H%M%S).log"
 cd "$M" || exit 1

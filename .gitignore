@@ -16,6 +16,7 @@
 /edk2-yunluo/
 /yunluo/
 /tools/
+/*.deb
 
 # Build outputs inside the Mu tree
 /mu-silicium/Build/
@@ -33,6 +34,12 @@
 /mu-silicium/Platforms/Realme/
 /mu-silicium/Platforms/OnePlus/
 /mu-silicium/Platforms/Samsung/
+/mu-silicium/Platforms/Asus/
+/mu-silicium/Platforms/Lenovo/
+/mu-silicium/Platforms/Motorola/
+/mu-silicium/Platforms/Nintendo/
+/mu-silicium/Platforms/Qualcomm/
+/mu-silicium/Platforms/ZTE/
 /mu-silicium/.github/
 
 # Boot chain: sources only, no stock images or compiled shim
