@@ -84,13 +84,24 @@ cat "$OURS/BootShim/BootShim.bin" "$FD" > "$FD.shimmed"
 gzip -9 -c "$FD.shimmed" > "$FD.shimmed.gz"
 python3 "$OURS/Tools/mkbootimg.py" boot "$FD.shimmed.gz" "$IMG" || exit 1
 
-cp -f "$OURS/vendor_boot.img" "$OUT/vendor_boot-yunluo-mu.img"
-python3 "$OURS/Tools/mkbootimg.py" inspect "$IMG" "$OUT/vendor_boot-yunluo-mu.img"
+# The paired stock vendor_boot is a vendor image and is therefore not in the
+# repository.  If it is missing, package and report boot.img only -- flashing
+# still needs the stock vendor_boot already on the device.
+VENDOR="$OUT/vendor_boot-yunluo-mu.img"
+if [ -f "$OURS/vendor_boot.img" ]; then
+  cp -f "$OURS/vendor_boot.img" "$VENDOR"
+  python3 "$OURS/Tools/mkbootimg.py" inspect "$IMG" "$VENDOR"
+else
+  echo "NOTE: bootchain/vendor_boot.img absent (vendor image, not tracked)."
+  echo "      Pair this boot.img with the stock vendor_boot already on the device."
+  python3 "$OURS/Tools/mkbootimg.py" inspect "$IMG"
+  VENDOR=""
+fi
 
 echo ""
 echo "=========== SUCCESS! ==========="
 echo "FD:         $FD"
-echo "boot.img:   $OUT/boot-yunluo-mu.img"
-echo "vendor:     $OUT/vendor_boot-yunluo-mu.img"
+echo "boot.img:   $IMG"
+[ -n "$VENDOR" ] && echo "vendor:     $VENDOR"
 echo "================================"
-sha256sum "$IMG" "$OUT/vendor_boot-yunluo-mu.img"
+[ -n "$VENDOR" ] && sha256sum "$IMG" "$VENDOR" || sha256sum "$IMG"
