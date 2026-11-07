@@ -1,33 +1,45 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Only source is tracked.  Build trees, firmware dumps, toolchain downloads and
-# vendor images stay out of the repository.
+# The Mu-Silicium base needed to cold-build this platform is tracked, so the
+# repository is self-contained.  What stays out: build outputs, firmware dumps,
+# vendor images, and the parts of the Mu tree this platform never touches.
 # ─────────────────────────────────────────────────────────────────────────────
-/*
-!/.gitignore
-!/LICENSE
-!/AGENTS.md
-!/README.md
-!/TRACKING.md
-!/UFS-PORTING.md
-!/ENVIRONMENT.md
-!/build-yunluo-mu.sh
 
-# Boot chain sources only: the 64 MiB stock vendor_boot.img and the compiled
-# BootShim are not source.
-!/bootchain/
+# Local-only material at the workspace root
+/*.bundle
+/expdb
+/expdb-mainline
+/expdb-new
+/expdb-normal
+/Build/
+/mu-work/
+/archive/
+/edk2-yunluo/
+/yunluo/
+/tools/
+
+# Build outputs inside the Mu tree
+/mu-silicium/Build/
+
+# Not used by an MT6789 build; restore from the pinned Mu-Silicium snapshot
+# (0b68d714…) when a config actually needs them.
+/mu-silicium/Resources/
+/mu-silicium/Silicium-ACPI/
+/mu-silicium/Silicon/Silicium/OpensslPkg/
+/mu-silicium/Silicon/Qualcomm/
+/mu-silicium/Silicon/Samsung/
+/mu-silicium/Silicon/Nvidia/
+/mu-silicium/Platforms/LG/
+/mu-silicium/Platforms/Nothing/
+/mu-silicium/Platforms/Realme/
+/mu-silicium/Platforms/OnePlus/
+/mu-silicium/Platforms/Samsung/
+/mu-silicium/.github/
+
+# Boot chain: sources only, no stock images or compiled shim
 /bootchain/vendor_boot.img
 /bootchain/BootShim/*.elf
 /bootchain/BootShim/*.bin
 
-# Out of the whole Mu-Silicium tree only the yunluo platform package is tracked.
-# (The one Mu_Basecore file this platform patches is tracked explicitly.)
-!/mu-silicium/
-/mu-silicium/*
-!/mu-silicium/Platforms/
-/mu-silicium/Platforms/*
-!/mu-silicium/Platforms/Xiaomi/
-/mu-silicium/Platforms/Xiaomi/*
-!/mu-silicium/Platforms/Xiaomi/yunluoPkg/
-
 __pycache__/
 *.pyc
+*.pyo
